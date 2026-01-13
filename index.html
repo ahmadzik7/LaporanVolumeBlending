@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Input Volume Blending - Per Sheet</title>
+  <style>
+    :root {
+      --bg: #121212;
+      --card: #1e1e1e;
+      --text: #ffffff;
+      --primary: #2858dd;
+      --accent: #bbdefb;
+      --border: #333;
+      --hover: #2a2a2a;
+    }
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      padding: 20px;
+      min-height: 100vh;
+    }
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      background: var(--card);
+      border-radius: 12px;
+      padding: 25px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+    }
+    header {
+      text-align: center;
+      margin-bottom: 30px;
+      padding: 15px;
+      background: linear-gradient(135deg, var(--primary), #1b5e20);
+      border-radius: 8px;
+    }
+    h1 {
+      font-size: 1.8rem;
+      font-weight: bold;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+    .form-group {
+      margin-bottom: 20px;
+    }
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      color: var(--accent);
+    }
+    input, select {
+      width: 100%;
+      padding: 14px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-size: 16px;
+      transition: all 0.2s ease;
+    }
+    input:focus, select:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px rgba(187, 222, 251, 0.2);
+    }
+    input[readonly] {
+      background: #2a2a2a;
+      cursor: not-allowed;
+    }
+    button {
+      width: 100%;
+      padding: 14px;
+      background: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      margin-top: 20px;
+      transition: background 0.2s;
+    }
+    button:hover:not(:disabled) {
+      background: #1b5e20;
+    }
+    button:disabled {
+      background: #555;
+      cursor: not-allowed;
+    }
+
+    /* Preview Section */
+    #previewSection {
+      margin-top: 30px;
+      padding: 20px;
+      background: var(--bg);
+      border-radius: 10px;
+      display: none;
+    }
+    #previewTable table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+    }
+    th, td {
+      padding: 10px;
+      text-align: center;
+      border: 1px solid var(--border);
+    }
+    th {
+      background: var(--primary);
+      font-weight: bold;
+    }
+    tr:nth-child(even) {
+      background: #1a1a1a;
+    }
+
+    /* Message */
+    #message {
+      padding: 12px;
+      margin: 15px 0;
+      border-radius: 6px;
+      text-align: center;
+      font-weight: bold;
+    }
+    .success { background: #1a521a; color: #bbdefb; }
+    .error { background: #521a1a; color: #ffcccb; }
+
+    /* Export Button Style */
+    .btn-group {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+    }
+    .btn-secondary {
+      background: #424242;
+    }
+    .btn-secondary:hover {
+      background: #555;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>📋 Input Volume Blending</h1>
+    </header>
+
+    <div class="form-section">
+      <div class="form-group">
+        <label for="tanggal">Tanggal Produksi:</label>
+        <input type="date" id="tanggal" required />
+      </div>
+
+      <div class="form-group">
+        <label for="batch">Batch:</label>
+        <select id="batch" required>
+          <option value="">-- Pilih Batch --</option>
+          <option value="1-2">1-2</option>
+          <option value="3-4">3-4</option>
+          <option value="5-6">5-6</option>
+          <option value="7-8">7-8</option>
+          <option value="9-10">9-10</option>
+          <option value="11-12">11-12</option>
+          <option value="13-14">13-14</option>
+          <option value="15-16">15-16</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="varian">Varian:</label>
+        <select id="varian" required>
+          <option value="">-- Pilih Varian --</option>
+          <optgroup label="JB Group">
+            <option value="JB Mix GF (Non Repro)">JB Mix GF (Non Repro)</option>
+            <option value="JB Glukosa SKJ Baru">JB Glukosa SKJ Baru</option>
+          </optgroup>
+          <optgroup label="BB Group">
+            <option value="BB Mix GF">BB Mix GF</option>
+            <option value="BB Glukosa SKJ Baru">BB Glukosa SKJ Baru</option>
+          </optgroup>
+          <optgroup label="SS Group">
+            <option value="SS Mix GF (Non Repro)">SS Mix GF (Non Repro)</option>
+            <option value="SS Mix GF (Repro)">SS Mix GF (Repro)</option>
+          </optgroup>
+          <optgroup label="MSD Group">
+            <option value="MSD 80 Persen (Repro MSD)">MSD 80 Persen (Repro MSD)</option>
+            <option value="MSD 80 Persen (Repro NR2)">MSD 80 Persen (Repro NR2)</option>
+          </optgroup>
+          <option value="NR2">NR2</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="grup">Grup:</label>
+        <select id="grup" required>
+          <option value="">-- Pilih Grup --</option>
+          <option value="A">A</option>
+          <option value="B">B</option>
+          <option value="C">C</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="volAwal">Volume Awal (L):</label>
+        <input type="number" id="volAwal" min="0" step="0.01" placeholder="Contoh: 10000.00" required />
+      </div>
+
+      <div class="form-group">
+        <label for="volAkhir">Volume Akhir (L):</label>
+        <input type="number" id="volAkhir" min="0" step="0.01" placeholder="Contoh: 9800.00" required />
+      </div>
+
+      <div class="form-group">
+        <label for="air">Air (kg):</label>
+        <input type="number" id="air" min="0" step="0.01" placeholder="Contoh: 200.00" required />
+      </div>
+
+      <div class="form-group">
+        <label for="garam">Garam (kg):</label>
+        <input type="number" id="garam" min="0" step="0.01" placeholder="Contoh: 50.00" required />
+      </div>
+
+      <!-- Kolom Otomatis -->
+      <div class="form-group">
+        <label>Selisih (L):</label>
+        <input type="number" id="selisihL" readonly step="0.01" placeholder="Otomatis" />
+      </div>
+
+      <div class="form-group">
+        <label>Selisih (kg):</label>
+        <input type="number" id="selisihKg" readonly step="0.01" placeholder="Otomatis" />
+      </div>
+
+      <div class="form-group">
+        <label>Total Adjustment (kg):</label>
+        <input type="number" id="totalAdjustment" readonly step="0.01" placeholder="Otomatis" />
+      </div>
+
+      <div class="form-group">
+        <label>Selisih Vol (Akhir) - Total Adjustment (kg):</label>
+        <input type="number" id="selisihVolMinusAdj" readonly step="0.01" placeholder="Otomatis" />
+      </div>
+
+      <div class="form-group">
+        <label>STD Vol Awal (L):</label>
+        <input type="number" id="stdVolAwal" readonly step="0.01" placeholder="Otomatis" />
+      </div>
+
+      <div class="form-group">
+        <label>Selisih Awal Blending Aktual STD (L):</label>
+        <input type="number" id="selisihAwalBlendingStdL" readonly step="0.01" placeholder="Otomatis" />
+      </div>
+
+      <div class="form-group">
+        <label>Selisih Awal Blending Aktual STD (Kg):</label>
+        <input type="number" id="selisihAwalBlendingStdKg" readonly step="0.01" placeholder="Otomatis" />
+      </div>
+
+      <div class="btn-group">
+        <button type="button" id="previewBtn">🔍 Preview</button>
+        <button type="button" id="exportPdfBtn" class="btn-secondary">📥 Ekspor PDF</button>
+      </div>
+
+      <button type="submit" id="submitBtn">📤 Kirim ke Spreadsheet</button>
+
+      <div id="message"></div>
+    </div>
+
+    <!-- Preview Section -->
+    <div id="previewSection">
+      <h3>📊 Preview Data</h3>
+      <div id="previewTable"></div>
+    </div>
+  </div>
+
+  <!-- Chart.js (tidak digunakan sekarang) -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <script>
+    // Konfigurasi STD Vol Awal per Varian
+    const STD_VOL_AWAL = {
+      "JB Mix GF (Non Repro)": { kg: 13.613, l: 9793 },
+      "BB Mix GF": { kg: 13.997, l: 10070 },
+      "SS Mix GF (Non Repro)": { kg: 11.461, l: 8245 },
+      "SS Mix GF (Repro)": { kg: 12.574, l: 9046 },
+      "JB Glukosa SKJ Baru": { kg: 13.947, l: 10034 },
+      "BB Glukosa SKJ Baru": { kg: 14.665, l: 10550 },
+      "MSD 80 Persen (Repro MSD)": { kg: 14.300, l: 10288 },
+      "MSD 80 Persen (Repro NR2)": { kg: 13.922, l: 10016 },
+      "NR2": { kg: 12.577, l: 9048 }
+    };
+
+    const STORAGE_KEY = 'blending_form_data_v2';
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw2GuEwFtq-PU-2RqzLL009ufyFPkOTsRAKrjuQjfEx-oAiZmWwmCnaMZw-TtBaolOv/exec';
+
+    document.addEventListener('DOMContentLoaded', () => {
+      setupAutoCalculations();
+    });
+
+    function setupAutoCalculations() {
+      const inputs = ['volAwal', 'volAkhir', 'air', 'garam', 'varian'];
+      inputs.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+          el.addEventListener('input', calculateAll);
+        }
+      });
+      calculateAll(); // Hitung saat load
+    }
+
+    function calculateAll() {
+      const volAwal = parseFloat(document.getElementById('volAwal').value) || 0;
+      const volAkhir = parseFloat(document.getElementById('volAkhir').value) || 0;
+      const air = parseFloat(document.getElementById('air').value) || 0;
+      const garam = parseFloat(document.getElementById('garam').value) || 0;
+      const varian = document.getElementById('varian').value;
+
+      // Selisih (L)
+      const selisihL = volAwal - volAkhir;
+      document.getElementById('selisihL').value = selisihL.toFixed(2);
+
+      // Selisih (kg) = Selisih(L) * 1.39
+      const selisihKg = selisihL * 1.39;
+      document.getElementById('selisihKg').value = selisihKg.toFixed(2);
+
+      // Total Adjustment (kg) = Air + Garam
+      const totalAdjustment = air + garam;
+      document.getElementById('totalAdjustment').value = totalAdjustment.toFixed(2);
+
+      // Selisih Vol (Akhir) - Total Adjustment (kg) = Selisih (kg) - Total (kg)
+      const selisihVolMinusAdj = selisihKg - totalAdjustment;
+      document.getElementById('selisihVolMinusAdj').value = selisihVolMinusAdj.toFixed(2);
+
+      // STD Vol Awal (L)
+      let stdVolAwalL = 0;
+      if (STD_VOL_AWAL[varian]) {
+        stdVolAwalL = STD_VOL_AWAL[varian].l;
+      }
+      document.getElementById('stdVolAwal').value = stdVolAwalL.toFixed(2);
+
+      // Selisih Awal Blending Aktual STD (L)
+      const selisihAwalBlendingStdL = volAwal - stdVolAwalL;
+      document.getElementById('selisihAwalBlendingStdL').value = selisihAwalBlendingStdL.toFixed(2);
+
+      // Selisih Awal Blending Aktual STD (Kg)
+      const selisihAwalBlendingStdKg = selisihAwalBlendingStdL * 1.39;
+      document.getElementById('selisihAwalBlendingStdKg').value = selisihAwalBlendingStdKg.toFixed(2);
+    }
+
+    // === EKSPOR PDF ===
+    async function exportPreviewToPdf() {
+      const tableEl = document.querySelector('#previewTable table');
+      if (!tableEl || tableEl.rows.length <= 1) {
+        alert('⚠️ Klik "Preview" dulu untuk memuat data!');
+        return;
+      }
+
+      if (typeof window.jsPDF === 'undefined') {
+        await new Promise((resolve) => {
+          const s1 = document.createElement('script');
+          s1.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+          s1.onload = () => {
+            const s2 = document.createElement('script');
+            s2.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js';
+            s2.onload = resolve;
+            document.head.appendChild(s2);
+          };
+          document.head.appendChild(s1);
+        });
+      }
+
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF('landscape', 'mm', 'a4');
+      const pageWidth = doc.internal.pageSize.width;
+
+      let y = 15;
+      const title = `Laporan Volume Blending - ${document.getElementById('varian').value || 'Varian'} - ${new Date().toISOString().slice(0,10)}`;
+      doc.setFontSize(16);
+      doc.text(title, pageWidth / 2, y, { align: 'center' });
+      y += 15;
+
+      // Tabel Detail
+      doc.setFontSize(14);
+      doc.text('📋 Detail Data', 20, y);
+      y += 10;
+
+      doc.autoTable({
+        html: '#previewTable table',
+        startY: y,
+        theme: 'grid',
+        headStyles: { fillColor: [46, 125, 50] },
+        styles: { fontSize: 8 }
+      });
+
+      doc.save(`Laporan_Volume_Blending_${new Date().toISOString().slice(0,10)}.pdf`);
+    }
+
+    // === PREVIEW ===
+    document.getElementById('previewBtn').addEventListener('click', generatePreview);
+    document.getElementById('exportPdfBtn').addEventListener('click', exportPreviewToPdf);
+    document.getElementById('submitBtn').addEventListener('click', submitFormData);
+
+    function generatePreview() {
+      const tanggal = document.getElementById('tanggal').value ? new Date(document.getElementById('tanggal').value).toLocaleDateString('id-ID', {
+        weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+      }).replace(/\b\w/g, l => l.toUpperCase()) : 'Tanggal Belum Dipilih';
+
+      const batch = document.getElementById('batch').value;
+      const varian = document.getElementById('varian').value;
+      const grup = document.getElementById('grup').value;
+      const volAwal = document.getElementById('volAwal').value;
+      const volAkhir = document.getElementById('volAkhir').value;
+      const air = document.getElementById('air').value;
+      const garam = document.getElementById('garam').value;
+      const selisihL = document.getElementById('selisihL').value;
+      const selisihKg = document.getElementById('selisihKg').value;
+      const totalAdjustment = document.getElementById('totalAdjustment').value;
+      const selisihVolMinusAdj = document.getElementById('selisihVolMinusAdj').value;
+      const stdVolAwal = document.getElementById('stdVolAwal').value;
+      const selisihAwalBlendingStdL = document.getElementById('selisihAwalBlendingStdL').value;
+      const selisihAwalBlendingStdKg = document.getElementById('selisihAwalBlendingStdKg').value;
+
+      let detailHTML = `<table><thead><tr>
+        <th>Tanggal</th>
+        <th>Batch</th>
+        <th>Varian</th>
+        <th>Grup</th>
+        <th>Vol Awal (L)</th>
+        <th>Vol Akhir (L)</th>
+        <th>Selisih (L)</th>
+        <th>Selisih (kg)</th>
+        <th>Air (kg)</th>
+        <th>Garam (kg)</th>
+        <th>Total Adj (kg)</th>
+        <th>Selisih Vol Akhir - Adj (kg)</th>
+        <th>STD Vol Awal (L)</th>
+        <th>Selisih Awal Blending Std (L)</th>
+        <th>Selisih Awal Blending Std (Kg)</th>
+      </tr></thead><tbody>
+        <tr>
+          <td>${tanggal}</td>
+          <td>${batch}</td>
+          <td>${varian}</td>
+          <td>${grup}</td>
+          <td>${volAwal}</td>
+          <td>${volAkhir}</td>
+          <td>${selisihL}</td>
+          <td>${selisihKg}</td>
+          <td>${air}</td>
+          <td>${garam}</td>
+          <td>${totalAdjustment}</td>
+          <td>${selisihVolMinusAdj}</td>
+          <td>${stdVolAwal}</td>
+          <td>${selisihAwalBlendingStdL}</td>
+          <td>${selisihAwalBlendingStdKg}</td>
+        </tr>
+      </tbody></table>`;
+
+      document.getElementById('previewTable').innerHTML = detailHTML;
+      document.getElementById('previewSection').style.display = 'block';
+    }
+
+    function submitFormData() {
+      const btn = document.getElementById('submitBtn');
+      const original = btn.textContent;
+      btn.textContent = 'Mengirim...';
+      btn.disabled = true;
+
+      const formData = new FormData();
+      formData.append('tanggal', document.getElementById('tanggal').value);
+      formData.append('batch', document.getElementById('batch').value);
+      formData.append('varian', document.getElementById('varian').value);
+      formData.append('grup', document.getElementById('grup').value);
+      formData.append('volAwal', document.getElementById('volAwal').value);
+      formData.append('volAkhir', document.getElementById('volAkhir').value);
+      formData.append('air', document.getElementById('air').value);
+      formData.append('garam', document.getElementById('garam').value);
+      formData.append('selisihL', document.getElementById('selisihL').value);
+      formData.append('selisihKg', document.getElementById('selisihKg').value);
+      formData.append('totalAdjustment', document.getElementById('totalAdjustment').value);
+      formData.append('selisihVolMinusAdj', document.getElementById('selisihVolMinusAdj').value);
+      formData.append('stdVolAwal', document.getElementById('stdVolAwal').value);
+      formData.append('selisihAwalBlendingStdL', document.getElementById('selisihAwalBlendingStdL').value);
+      formData.append('selisihAwalBlendingStdKg', document.getElementById('selisihAwalBlendingStdKg').value);
+
+      fetch(SCRIPT_URL, { method: 'POST', body: formData })
+        .then(r => r.json())
+        .then(d => {
+          document.getElementById('message').className = 'success';
+          document.getElementById('message').textContent = '✅ Data berhasil dikirim!';
+          setTimeout(() => {
+            document.getElementById('message').textContent = '';
+          }, 3000);
+        })
+        .catch(e => {
+          console.error(e);
+          document.getElementById('message').className = 'error';
+          document.getElementById('message').textContent = '❌ Gagal kirim data.';
+          setTimeout(() => {
+            document.getElementById('message').textContent = '';
+          }, 3000);
+        })
+        .finally(() => {
+          btn.textContent = original;
+          btn.disabled = false;
+        });
+    }
+  </script>
+</body>
+</html>
