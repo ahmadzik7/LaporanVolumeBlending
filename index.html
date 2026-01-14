@@ -160,18 +160,8 @@
       </div>
 
       <div class="form-group">
-        <label for="batch">Batch:</label>
-        <select id="batch" required>
-          <option value="">-- Pilih Batch --</option>
-          <option value="1-2">1-2</option>
-          <option value="3-4">3-4</option>
-          <option value="5-6">5-6</option>
-          <option value="7-8">7-8</option>
-          <option value="9-10">9-10</option>
-          <option value="11-12">11-12</option>
-          <option value="13-14">13-14</option>
-          <option value="15-16">15-16</option>
-        </select>
+        <label for="batch">Batch (contoh: 1-2, 5-6, dll):</label>
+        <input type="text" id="batch" placeholder="Ketik batch secara manual" required />
       </div>
 
       <div class="form-group">
@@ -266,7 +256,8 @@
 
       <div class="btn-group">
         <button type="button" id="previewBtn">🔍 Preview</button>
-        <button type="button" id="exportPdfBtn" class="btn-secondary">📥 Ekspor PDF</button>
+        <button type="button" id="exportPdfBtn" class="btn-secondary">📥 PDF</button>
+        <button type="button" id="exportExcelBtn" class="btn-secondary">📊 Excel</button>
       </div>
 
       <button type="submit" id="submitBtn">📤 Kirim ke Spreadsheet</button>
@@ -281,11 +272,11 @@
     </div>
   </div>
 
-  <!-- Chart.js (tidak digunakan sekarang) -->
+  <!-- Libraries -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
   <script>
-    // Konfigurasi STD Vol Awal per Varian
     const STD_VOL_AWAL = {
       "JB Mix GF (Non Repro)": { kg: 13.613, l: 9793 },
       "BB Mix GF": { kg: 13.997, l: 10070 },
@@ -313,7 +304,7 @@
           el.addEventListener('input', calculateAll);
         }
       });
-      calculateAll(); // Hitung saat load
+      calculateAll();
     }
 
     function calculateAll() {
@@ -323,39 +314,46 @@
       const garam = parseFloat(document.getElementById('garam').value) || 0;
       const varian = document.getElementById('varian').value;
 
-      // Selisih (L)
       const selisihL = volAwal - volAkhir;
       document.getElementById('selisihL').value = selisihL.toFixed(2);
 
-      // Selisih (kg) = Selisih(L) * 1.39
       const selisihKg = selisihL * 1.39;
       document.getElementById('selisihKg').value = selisihKg.toFixed(2);
 
-      // Total Adjustment (kg) = Air + Garam
       const totalAdjustment = air + garam;
       document.getElementById('totalAdjustment').value = totalAdjustment.toFixed(2);
 
-      // Selisih Vol (Akhir) - Total Adjustment (kg) = Selisih (kg) - Total (kg)
       const selisihVolMinusAdj = selisihKg - totalAdjustment;
       document.getElementById('selisihVolMinusAdj').value = selisihVolMinusAdj.toFixed(2);
 
-      // STD Vol Awal (L)
       let stdVolAwalL = 0;
       if (STD_VOL_AWAL[varian]) {
         stdVolAwalL = STD_VOL_AWAL[varian].l;
       }
       document.getElementById('stdVolAwal').value = stdVolAwalL.toFixed(2);
 
-      // Selisih Awal Blending Aktual STD (L)
       const selisihAwalBlendingStdL = volAwal - stdVolAwalL;
       document.getElementById('selisihAwalBlendingStdL').value = selisihAwalBlendingStdL.toFixed(2);
 
-      // Selisih Awal Blending Aktual STD (Kg)
       const selisihAwalBlendingStdKg = selisihAwalBlendingStdL * 1.39;
       document.getElementById('selisihAwalBlendingStdKg').value = selisihAwalBlendingStdKg.toFixed(2);
     }
 
-    // === EKSPOR PDF ===
+    // === EKSPOR EXCEL (.xlsx) ===
+    function exportToExcel() {
+      const table = document.querySelector('#previewTable table');
+      if (!table) {
+        alert('⚠️ Klik "Preview" dulu untuk memuat data!');
+        return;
+      }
+
+      const ws = XLSX.utils.table_to_sheet(table);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Blending_Data");
+      XLSX.writeFile(wb, `Blending_${new Date().toISOString().slice(0,10)}.xlsx`);
+    }
+
+    // === EKSPOR PDF (tetap tersedia) ===
     async function exportPreviewToPdf() {
       const tableEl = document.querySelector('#previewTable table');
       if (!tableEl || tableEl.rows.length <= 1) {
@@ -387,7 +385,6 @@
       doc.text(title, pageWidth / 2, y, { align: 'center' });
       y += 15;
 
-      // Tabel Detail
       doc.setFontSize(14);
       doc.text('📋 Detail Data', 20, y);
       y += 10;
@@ -406,6 +403,7 @@
     // === PREVIEW ===
     document.getElementById('previewBtn').addEventListener('click', generatePreview);
     document.getElementById('exportPdfBtn').addEventListener('click', exportPreviewToPdf);
+    document.getElementById('exportExcelBtn').addEventListener('click', exportToExcel);
     document.getElementById('submitBtn').addEventListener('click', submitFormData);
 
     function generatePreview() {
@@ -468,6 +466,31 @@
       document.getElementById('previewSection').style.display = 'block';
     }
 
+    // === CLEAR FORM ===
+    function clearForm() {
+      document.getElementById('tanggal').value = '';
+      document.getElementById('batch').value = '';
+      document.getElementById('varian').value = '';
+      document.getElementById('grup').value = '';
+      document.getElementById('volAwal').value = '';
+      document.getElementById('volAkhir').value = '';
+      document.getElementById('air').value = '';
+      document.getElementById('garam').value = '';
+
+      // Kosongkan field otomatis
+      document.getElementById('selisihL').value = '';
+      document.getElementById('selisihKg').value = '';
+      document.getElementById('totalAdjustment').value = '';
+      document.getElementById('selisihVolMinusAdj').value = '';
+      document.getElementById('stdVolAwal').value = '';
+      document.getElementById('selisihAwalBlendingStdL').value = '';
+      document.getElementById('selisihAwalBlendingStdKg').value = '';
+
+      // Sembunyikan preview
+      document.getElementById('previewSection').style.display = 'none';
+    }
+
+    // === KIRIM DATA ===
     function submitFormData() {
       const btn = document.getElementById('submitBtn');
       const original = btn.textContent;
@@ -494,21 +517,23 @@
       fetch(SCRIPT_URL, { method: 'POST', body: formData })
         .then(r => r.json())
         .then(d => {
-          document.getElementById('message').className = 'success';
-          document.getElementById('message').textContent = '✅ Data berhasil dikirim!';
-          setTimeout(() => {
-            document.getElementById('message').textContent = '';
-          }, 3000);
+          if (d.status === "success") {
+            document.getElementById('message').className = 'success';
+            document.getElementById('message').textContent = '✅ Data berhasil dikirim!';
+            clearForm(); // 🔥 Auto-clear setelah sukses
+          } else {
+            throw new Error(d.message || 'Gagal kirim');
+          }
         })
         .catch(e => {
           console.error(e);
           document.getElementById('message').className = 'error';
-          document.getElementById('message').textContent = '❌ Gagal kirim data.';
+          document.getElementById('message').textContent = '❌ Gagal kirim data: ' + e.message;
+        })
+        .finally(() => {
           setTimeout(() => {
             document.getElementById('message').textContent = '';
           }, 3000);
-        })
-        .finally(() => {
           btn.textContent = original;
           btn.disabled = false;
         });
